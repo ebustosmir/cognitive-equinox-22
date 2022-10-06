@@ -9,6 +9,12 @@ logging {
             print-time yes;
             severity info;
         };
+        channel security {
+            file "/var/log/bind/security" versions 3 size 1M;
+            print-time yes;
+            severity info;
+        };
         category default { general; };
         category queries { query; };
+        category security { security; };
 };
