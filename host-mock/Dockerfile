@@ -12,7 +12,6 @@ COPY bin/docker-entrypoint.sh /home/docker-entrypoint.sh
 RUN chmod +x /home/docker-entrypoint.sh
 
 COPY requirements.txt /home/requirements.txt
-COPY run-server.sh /home/run-server.sh
 COPY server.py /home/server.py
 
 
