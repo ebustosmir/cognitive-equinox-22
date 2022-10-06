@@ -12,6 +12,7 @@ RUN chmod +x /home/docker-entrypoint.sh
 
 COPY requirements.txt /home/requirements.txt
 COPY server.py /home/server.py
+COPY templates /home/templates
 
 RUN pip install -r /home/requirements.txt
 

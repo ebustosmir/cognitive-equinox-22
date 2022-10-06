@@ -1,6 +1,6 @@
 from datetime import datetime
 import pytz
-from flask import Flask, request
+from flask import Flask, request, render_template
 import os
 
 app = Flask(__name__)
@@ -69,7 +69,8 @@ dns_handler = DnsHostHandler(filename=DNS_CONFIG_FILE, domain=DOMAIN)
 
 @app.route('/')
 def root_path():
-    return 'Call to /hello'
+    list_hosts = dns_handler.list_host()
+    return render_template('index.html', title='Index - Cognitive Equinox', list_hosts=list_hosts)
 
 
 @app.route('/hello')
