@@ -9,6 +9,9 @@ echo "BUILD DNS"
 echo "BUILD host"
 . ${PROJECT_ROOT_FOLDER}/host/docker_build.sh
 
+echo "BUILD host"
+. ${PROJECT_ROOT_FOLDER}/network-manager/docker_build.sh
+
 echo "BUILD NETWORK-Manager"
 . ${PROJECT_ROOT_FOLDER}/network-manager/docker_build.sh
 
@@ -20,6 +23,10 @@ echo "RUN DNS"
 
 echo "RUN host"
 . ${PROJECT_ROOT_FOLDER}/host/docker_run.sh
+
+echo "RUN host"
+. ${PROJECT_ROOT_FOLDER}/network-manager/docker_run.sh
+
 
 echo "RUN NETWORK-Manager"
 . ${PROJECT_ROOT_FOLDER}/network-manager/docker_run.sh
