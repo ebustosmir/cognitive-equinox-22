@@ -1,9 +1,6 @@
 FROM python:3.9.14-slim
 
-LABEL name="aura-cognitive/hot-mock" \
-      maintainer="Telefonica <telefonica@telefonica.com>" \
-      vendor="Telefonica" \
-      license="Telefonica"
+LABEL name="cognitive-equinox/hot-mock"
 
 ARG FLASK_APP
 ARG SERVER_NAME

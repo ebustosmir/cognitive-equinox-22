@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd /home
-flask run
+flask run --host 0.0.0.0
