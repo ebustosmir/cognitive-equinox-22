@@ -26,7 +26,7 @@ class DnsHostHandler:
 
     def append_host(self, hostname: str, ip: str):
         with open(self.__filename, mode='a') as file:
-            file.write('\n%s%s        IN      A      %s' % (hostname, self.__domain, ip))
+            file.write('%s%s        IN      A      %s\n' % (hostname, self.__domain, ip))
 
     def write_host(self, hostname: str, ip: str) -> None:
         if not self.check_exist_dns(hostname=hostname):
