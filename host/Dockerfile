@@ -1,6 +1,6 @@
 FROM python:3.9.14-slim
 
-LABEL name="cognitive-equinox/hot-mock"
+LABEL name="cognitive-equinox/host"
 
 ARG FLASK_APP
 ARG SERVER_NAME
