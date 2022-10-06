@@ -3,6 +3,14 @@
         <h1>{{ title }}</h1>
         {% for host, ip in list_hosts.items() %}
             <p>{{ host }}: {{ip}}</p>
+        <form method="post" >
+                <input name="host" id="title" value="{{host}}" hidden>
+                <input type="submit" name="delete" value="delete">
+            </form>
         {% endfor %}
     </body>
+    <form method="post" action="/">
+        <input type="submit" name="refresh" value="refresh">
+        <input type="submit" name="add" value="add">
+    </form>
 </html>

@@ -5,7 +5,7 @@ import os
 
 app = Flask(__name__)
 SERVER_NAME = os.getenv("SERVER_NAME")
-DNS_CONFIG_FILE = '/home/db.cognitive-equinox.com'
+DNS_CONFIG_FILE = '../volume/db.cognitive-equinox.com'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
@@ -67,9 +67,15 @@ class DnsHostHandler:
 dns_handler = DnsHostHandler(filename=DNS_CONFIG_FILE, domain=DOMAIN)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def root_path():
-    list_hosts = dns_handler.list_host()
+    list_hosts = {}
+    if request.method == 'POST':
+        if request.form.get('delete'):
+            dns_handler.delete_host(hostname=request.form.get('host').replace(DOMAIN, ''))
+        if request.form.get('add'):
+            dns_handler.append_host('pruebaaa', '172.20.0.21')
+        list_hosts = dns_handler.list_host()
     return render_template('index.html', title='Index - Cognitive Equinox', list_hosts=list_hosts)
 
 
@@ -116,3 +122,7 @@ def remove_host(hostname):
     parsed_hostname = hostname.replace(DOMAIN, '')
     dns_handler.delete_host(hostname=parsed_hostname)
     return {'msg': 'Removed host "%s"!' % hostname}
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
