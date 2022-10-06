@@ -15,5 +15,13 @@ RUN chmod +x /home/docker-entrypoint.sh
 
 COPY etc/named.conf.options /etc/bind/
 COPY etc/named.conf.local /etc/bind/
+COPY etc/named.conf.logging /etc/bind/
+COPY etc/named.conf /etc/bind/
+
+RUN mkdir -p /var/log/bind
+RUN chown bind:bind /var/log/bind
+
+
+
 
 ENTRYPOINT ["/home/docker-entrypoint.sh"]
