@@ -6,7 +6,7 @@ PROJECT_ROOT_FOLDER=${SCRIPT_FOLDER}/..
 
 docker rm -f ${HOST1_NAME} ${HOST2_NAME} ${HOST3_NAME} ${HOST4_NAME} ${HOST5_NAME}
 
-docker network create --attachable --subnet=172.20.0.0/16 "${NETWORK_NAME}"  || true
+. ${PROJECT_ROOT_FOLDER}/tools/start_networks.sh
 
 docker run --name ${HOST1_NAME} --network "${NETWORK_NAME}" --ip=172.20.0.3 -d -p 6001:5000 -e FLASK_APP=server -e SERVER_NAME=${HOST1_NAME} host-mock
 docker run --name ${HOST2_NAME} --network "${NETWORK_NAME}" --ip=172.20.0.4 -d -p 6002:5000 -e FLASK_APP=server -e SERVER_NAME=${HOST2_NAME} host-mock
