@@ -3,6 +3,7 @@ FROM python:3.9.14-slim
 LABEL name="cognitive-equinox/network-manager"
 
 ARG FLASK_APP
+ARG SERVER_NAME
 
 RUN apt-get update && apt-get upgrade && apt-get install -y iputils-ping
 
