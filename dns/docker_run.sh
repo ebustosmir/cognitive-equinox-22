@@ -4,4 +4,4 @@ PROJECT_ROOT_FOLDER=${SCRIPT_FOLDER}/..
 
 docker rm -f dns-server || true
 . ${PROJECT_ROOT_FOLDER}/tools/start_networks.sh
-docker run -t -d --name=dns-server --net=${NETWORK_NAME} --ip=172.20.0.2 --entrypoint=/bin/bash -v "${PROJECT_ROOT_FOLDER}/volume/db.cognitive-equinox":/etc/bind/db.cognitive-equinox bind9
+docker run -d --name=dns-server --net=${NETWORK_NAME} -v "${PROJECT_ROOT_FOLDER}/volume/db.cognitive-equinox.com":/etc/bind/zones/db.cognitive-equinox.com --ip=172.20.0.2 bind9

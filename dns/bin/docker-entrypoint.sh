@@ -1,4 +1,6 @@
 #!/bin/bash
 
+echo "Start DNS server"
 /etc/init.d/bind9 start
-tail -f /var/log/bind9/named.log
+
+/bin/bash -c "while :; do rndc reload; sleep 1; done"

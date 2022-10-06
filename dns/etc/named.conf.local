@@ -1,1 +1,5 @@
-zone "cognitive-equinox.com"  { type master; file "/etc/bind/db.cognitive-equinox"; };
+zone "cognitive-equinox.com" {
+    type master;
+    file "/etc/bind/zones/db.cognitive-equinox.com";
+
+};
