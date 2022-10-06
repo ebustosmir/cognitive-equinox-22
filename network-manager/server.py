@@ -1,14 +1,37 @@
+import threading
 from datetime import datetime
 import pytz
+import queue
 from flask import Flask, request
+from watchfiles import watch
 import os
 
 app = Flask(__name__)
 SERVER_NAME = os.getenv("SERVER_NAME")
 DNS_CONFIG_FILE = '/home/db.cognitive-equinox.com'
+DNS_LOG_CONFIG_FILE = '/home/requests'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
+
+logs = queue.Queue()
+
+
+def handle_change(file_path):
+    with open(file_path, 'r') as f_in:
+        data = f_in.readlines()[-1]
+    return data
+
+
+def stream_worker():
+    for _ in watch(DNS_LOG_CONFIG_FILE):
+        new_data = handle_change(file_path=DNS_LOG_CONFIG_FILE)
+        print('Backend process read log stream: %s' % new_data)
+        logs.put(new_data)
+
+
+# Turn-on the worker thread.
+threading.Thread(target=stream_worker, daemon=True).start()
 
 
 class DnsHostHandler:
