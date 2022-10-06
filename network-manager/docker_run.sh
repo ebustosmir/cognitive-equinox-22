@@ -4,7 +4,7 @@ PROJECT_ROOT_FOLDER=${SCRIPT_FOLDER}/..
 
 . "${PROJECT_ROOT_FOLDER}/tools/variables.sh"
 
-docker rm -f ${HOST1_NAME} ${HOST2_NAME} ${HOST3_NAME} ${HOST4_NAME} ${HOST5_NAME}
+docker rm -f network-manager
 
 . ${PROJECT_ROOT_FOLDER}/tools/start_networks.sh
 
