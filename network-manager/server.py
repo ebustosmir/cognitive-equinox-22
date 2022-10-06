@@ -13,27 +13,47 @@ FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
 
 
-class HostManager:
+class HostsManager:
     def __init__(self):
         self.__dns_handler = DnsHostHandler(filename=DNS_CONFIG_FILE, domain=DOMAIN)
-        self.__host_mapper = self.__dns_handler.list_host()
+        self.__hosts_mapper = {
+            'host1.cognitive-equinox.com': {'ip': '172.20.0.4', 'show': False},
+            'host2.cognitive-equinox.com': {'ip': '172.20.0.5', 'show': False},
+            'host3.cognitive-equinox.com': {'ip': '172.20.0.6', 'show': False},
+            'host4.cognitive-equinox.com': {'ip': '172.20.0.7', 'show': False},
+            'host5.cognitive-equinox.com': {'ip': '172.20.0.8', 'show': False}
+        }
 
     def update_hosts(self):
-        self.__host_mapper = {host: self.__host_mapper.get(host, info_host)
-                              for host, info_host in self.__dns_handler.list_host().items()}
+        update_list = self.__dns_handler.list_host()
+        for host, info_host in self.__hosts_mapper.items():
+            if host not in update_list:
+                self.__hosts_mapper[host]['show'] = False
+                self.__hosts_mapper[host]['test'] = None
+            else:
+                self.__hosts_mapper[host]['show'] = True
 
     @property
     def host_mapper(self):
         self.update_hosts()
-        return copy.deepcopy(self.__host_mapper)
+        return copy.deepcopy(self.__hosts_mapper)
 
     def run_test(self, host):
         self.update_hosts()
-        if host in self.__host_mapper:
-            path = host
-            if host[-1] == '.':
-                path = host[:-1]
-            self.__host_mapper[host]['test'] = requests.get('http://%s/hello' % path).text
+        if host in self.__hosts_mapper:
+            self.__hosts_mapper[host]['test'] = requests.get('http://%s/hello' % host).text
+            # retry request
+
+    def add_new_host(self):
+        for host, info_host in self.__hosts_mapper.items():
+            if not info_host['show']:
+                self.__dns_handler.append_host(hostname=host, ip=info_host['ip'])
+                break
+        self.update_hosts()
+
+    def remove_host(self, host):
+        self.__dns_handler.delete_host(hostname=host)
+        self.update_hosts()
 
 
 class DnsHostHandler:
@@ -43,15 +63,17 @@ class DnsHostHandler:
         self.__domain = domain
 
     def check_exist_dns(self, hostname: str) -> bool:
+        result = False
         with open(self.__filename, mode='r') as file:
             for line in file:
-                if hostname + self.__domain in line:
-                    return True
-        return False
+                if hostname in line:
+                    result = True
+                    break
+        return result
 
     def append_host(self, hostname: str, ip: str):
         with open(self.__filename, mode='a') as file:
-            file.write('%s%s        IN      A      %s\n' % (hostname, self.__domain, ip))
+            file.write('%s.        IN      A      %s\n' % (hostname, ip))
 
     def write_host(self, hostname: str, ip: str) -> None:
         if not self.check_exist_dns(hostname=hostname):
@@ -71,7 +93,7 @@ class DnsHostHandler:
                         definition_hosts = True
                     if not definition_hosts:
                         f.write(line)
-                    elif hostname + self.__domain not in line:
+                    elif hostname not in line:
                         f.write(line)
 
     def list_host(self) -> dict:
@@ -84,20 +106,28 @@ class DnsHostHandler:
                 elif read:
                     if line.strip():
                         host = line.split('IN')[0].rsplit()[0]
+                        host_name = host
+                        if host[-1] == '.':
+                            host_name = host_name[:-1]
                         ip = line.split('A')[1].rsplit()[0]
-                        hosts[host] = {'ip': ip}
+                        hosts[host_name] = {'ip': ip}
         return hosts
 
 
-host_manager = HostManager()
+hosts_manager = HostsManager()
 
 
 @app.route('/', methods=('GET', 'POST'))
 def root_path():
     if request.method == 'POST':
-        host_manager.run_test(host=request.form['host'])
+        if request.form.get('delete'):
+            hosts_manager.remove_host(host=request.form['host'])
+        elif request.form.get('add'):
+            hosts_manager.add_new_host()
+        elif request.form.get('test'):
+            hosts_manager.run_test(host=request.form['host'])
 
-    return render_template('index.html', title='Index - Cognitive Equinox', dict_hosts=host_manager.host_mapper)
+    return render_template('index.html', title='Index - Cognitive Equinox', dict_hosts=hosts_manager.host_mapper)
 
 """
 @app.route('/hello')

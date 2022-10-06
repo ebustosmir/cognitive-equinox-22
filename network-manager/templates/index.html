@@ -2,11 +2,17 @@
     <body>
         <h1>{{ title }}</h1>
         {% for host, info in dict_hosts.items() %}
-            <p>{{ host }}: {{info.ip}}{% if info.test %} ({{info.test}}) {% endif %}</p>
-            <form method="post" >
-                <input name="host" id="title" value="{{host}}" hidden>
-                <input type="submit" value="Test">
-            </form>
+            {% if info.show %}
+                <p>{{ host }}: {{info.ip}}{% if info.test %} ({{info.test}}) {% endif %}</p>
+                <form method="post" >
+                    <input name="host" id="title" value="{{host}}" hidden>
+                    <input type="submit" name="test" value="Test">
+                    <input type="submit" name="delete" value="delete">
+                </form>
+            {% endif %}
         {% endfor %}
     </body>
+    <form method="post" action="/">
+        <input type="submit" name="add" value="add">
+    </form>
 </html>
