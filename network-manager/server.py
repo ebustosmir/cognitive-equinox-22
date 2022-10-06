@@ -1,16 +1,40 @@
 import copy
-from datetime import datetime
+import threading
 import pytz
 import requests
-from flask import Flask, request, render_template
+from flask import render_template
+import queue
+from flask import Flask, request
+from watchfiles import watch
 import os
 
 app = Flask(__name__)
 SERVER_NAME = os.getenv("SERVER_NAME")
 DNS_CONFIG_FILE = '/home/db.cognitive-equinox.com'
+DNS_LOG_CONFIG_FILE = '/home/logs/query'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
+
+logs = queue.Queue()
+
+
+def handle_change(file_path):
+    with open(file_path, 'r') as f_in:
+        data = f_in.readlines()[-1]
+    return data
+
+
+def stream_worker():
+    count = 0
+    for _ in watch(DNS_LOG_CONFIG_FILE):
+        new_data = handle_change(file_path=DNS_LOG_CONFIG_FILE)
+        logs.put((count, new_data))
+        count += 1
+
+
+# Turn-on the worker thread.
+threading.Thread(target=stream_worker, daemon=True).start()
 
 
 class HostsManager:
@@ -119,6 +143,8 @@ hosts_manager = HostsManager()
 
 @app.route('/', methods=('GET', 'POST'))
 def root_path():
+    logs_json = {}
+
     if request.method == 'POST':
         if request.form.get('delete'):
             hosts_manager.remove_host(host=request.form['host'])
@@ -126,8 +152,13 @@ def root_path():
             hosts_manager.add_new_host()
         elif request.form.get('test'):
             hosts_manager.run_test(host=request.form['host'])
+        elif request.form.get('refresh'):
+            while not logs.empty():
+                i, last_logs = logs.get()
+                logs_json[i] = last_logs
 
-    return render_template('index.html', title='Index - Cognitive Equinox', dict_hosts=hosts_manager.host_mapper)
+    return render_template('index.html', title='Index - Cognitive Equinox',
+                           dict_hosts=hosts_manager.host_mapper, logs=logs_json)
 
 """
 @app.route('/hello')
@@ -173,4 +204,13 @@ def remove_host(hostname):
     parsed_hostname = hostname.replace(DOMAIN, '')
     dns_handler.delete_host(hostname=parsed_hostname)
     return {'msg': 'Removed host "%s"!' % hostname}
+
+
+@app.route('/logs', methods=['GET'])
+def get_logs():
+    results = {}
+    while not logs.empty():
+        i, last_logs = logs.get()
+        results[i] = last_logs
+    return results
 """

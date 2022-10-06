@@ -12,8 +12,5 @@ $TTL    604800
 ; name servers - A records
 ns1.cognitive-equinox.com.          IN      A      172.20.0.2
 
-host2.cognitive-equinox.com.        IN      A      172.20.0.5
-host4.cognitive-equinox.com.        IN      A      172.20.0.7
 host1.cognitive-equinox.com.        IN      A      172.20.0.4
-host3.cognitive-equinox.com.        IN      A      172.20.0.6
-host5.cognitive-equinox.com.        IN      A      172.20.0.8
+host2.cognitive-equinox.com.        IN      A      172.20.0.5

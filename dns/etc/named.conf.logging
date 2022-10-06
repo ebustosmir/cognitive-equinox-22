@@ -2,13 +2,19 @@ logging {
         channel general {
             file "/var/log/bind/general" versions 3 size 1M;
             print-time yes;
-            severity info;
+            severity debug;
         };
         channel query {
             file "/var/log/bind/query" versions 3 size 1M;
             print-time yes;
-            severity info;
+            severity debug;
+        };
+        channel security {
+            file "/var/log/bind/security" versions 3 size 1M;
+            print-time yes;
+            severity debug;
         };
         category default { general; };
         category queries { query; };
+        category security { security; };
 };
