@@ -26,7 +26,7 @@ class DnsHostHandler:
 
     def append_host(self, hostname: str, ip: str):
         with open(self.__filename, mode='a') as file:
-            file.write('\n%s.%s        IN      A      %s' % (hostname, self.__domain, ip))
+            file.write('\n%s%s        IN      A      %s' % (hostname, self.__domain, ip))
 
     def write_host(self, hostname: str, ip: str) -> None:
         if not self.check_exist_dns(hostname=hostname):
@@ -49,7 +49,7 @@ class DnsHostHandler:
                     elif hostname + self.__domain not in line:
                         f.write(line)
 
-    def list_host(self) -> None:
+    def list_host(self) -> dict:
         hosts = {}
         read = False
         with open(self.__filename, 'r') as file:
@@ -90,8 +90,8 @@ def new_host():
 
     new_ip = data.get('ip', None)
     if hostname and new_ip:
-        parsed_hostname = hostname.replace('.cognitive-equinox.com.')
-        dns_handler.write_host(hostname=parsed_hostname, host=new_ip)
+        parsed_hostname = hostname.replace(DOMAIN, '')
+        dns_handler.write_host(hostname=parsed_hostname, ip=new_ip)
         response = {'msg': 'Added new host "%s" with ip "%s"' % (hostname, new_ip)}
     else:
         response = 404, {'msg': 'Invalid body'}
@@ -101,9 +101,10 @@ def new_host():
 @app.route('/host/<hostname>', methods=['GET'])
 def get_host(hostname):
     hosts = dns_handler.list_host()
-    host_ip = hosts.get(hostname, None)
+    parsed_hostname = hostname.replace(DOMAIN, '') + DOMAIN
+    host_ip = hosts.get(parsed_hostname, None)
     if host_ip:
-        response = {'hostname': hostname, 'ip': host_ip}
+        response = {'hostname': parsed_hostname, 'ip': host_ip}
     else:
         response = {}
     return response
@@ -111,5 +112,6 @@ def get_host(hostname):
 
 @app.route('/host/<hostname>', methods=['DELETE'])
 def remove_host(hostname):
-    dns_handler.delete_host(hostname=hostname)
+    parsed_hostname = hostname.replace(DOMAIN, '')
+    dns_handler.delete_host(hostname=parsed_hostname)
     return {'msg': 'Removed host "%s"!' % hostname}
