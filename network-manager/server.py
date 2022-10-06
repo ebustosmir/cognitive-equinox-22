@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 SERVER_NAME = os.getenv("SERVER_NAME")
 DNS_CONFIG_FILE = '/home/db.cognitive-equinox.com'
-DNS_LOG_CONFIG_FILE = '/home/requests'
+DNS_LOG_CONFIG_FILE = '/home/logs/query'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
@@ -24,10 +24,11 @@ def handle_change(file_path):
 
 
 def stream_worker():
+    count = 0
     for _ in watch(DNS_LOG_CONFIG_FILE):
         new_data = handle_change(file_path=DNS_LOG_CONFIG_FILE)
-        print('Backend process read log stream: %s' % new_data)
-        logs.put(new_data)
+        logs.put((count, new_data))
+        count += 1
 
 
 # Turn-on the worker thread.
@@ -138,3 +139,12 @@ def remove_host(hostname):
     parsed_hostname = hostname.replace(DOMAIN, '')
     dns_handler.delete_host(hostname=parsed_hostname)
     return {'msg': 'Removed host "%s"!' % hostname}
+
+
+@app.route('/logs', methods=['GET'])
+def get_logs():
+    results = {}
+    while not logs.empty():
+        i, last_logs = logs.get()
+        results[i] = last_logs
+    return results
