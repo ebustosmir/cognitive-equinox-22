@@ -1,0 +1,11 @@
+logging {
+    channel file_log {
+        file "/var/log/bind9/named.log" versions 2 size 50k;
+        severity info;
+        print-time yes;
+        print-severity yes;
+        print-category yes;
+    };
+    category default { file_log; default_debug; };
+    category unmatched { null; };
+};

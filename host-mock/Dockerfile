@@ -4,7 +4,7 @@ LABEL name="cognitive-equinox/hot-mock"
 
 ARG FLASK_APP
 ARG SERVER_NAME
-
+RUN apt-get update && apt-get upgrade && apt-get install -y iputils-ping
 COPY bin/docker-entrypoint.sh /home/docker-entrypoint.sh
 RUN chmod +x /home/docker-entrypoint.sh
 
