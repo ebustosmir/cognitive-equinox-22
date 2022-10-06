@@ -8,8 +8,6 @@ LABEL name="aura-cognitive/hot-mock" \
 ARG FLASK_APP
 ARG SERVER_NAME
 
-EXPOSE 5000
-
 COPY bin/docker-entrypoint.sh /home/docker-entrypoint.sh
 RUN chmod +x /home/docker-entrypoint.sh
 
