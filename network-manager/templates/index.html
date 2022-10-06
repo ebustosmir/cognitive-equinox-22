@@ -1,8 +1,12 @@
 <html>
     <body>
         <h1>{{ title }}</h1>
-        {% for host, ip in list_hosts.items() %}
-            <p>{{ host }}: {{ip}}</p>
+        {% for host, info in dict_hosts.items() %}
+            <p>{{ host }}: {{info.ip}}{% if info.test %} ({{info.test}}) {% endif %}</p>
+            <form method="post" >
+                <input name="host" id="title" value="{{host}}" hidden>
+                <input type="submit" value="Test">
+            </form>
         {% endfor %}
     </body>
 </html>

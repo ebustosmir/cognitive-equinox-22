@@ -1,5 +1,7 @@
+import copy
 from datetime import datetime
 import pytz
+import requests
 from flask import Flask, request, render_template
 import os
 
@@ -9,6 +11,29 @@ DNS_CONFIG_FILE = '/home/db.cognitive-equinox.com'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
+
+
+class HostManager:
+    def __init__(self):
+        self.__dns_handler = DnsHostHandler(filename=DNS_CONFIG_FILE, domain=DOMAIN)
+        self.__host_mapper = self.__dns_handler.list_host()
+
+    def update_hosts(self):
+        self.__host_mapper = {host: self.__host_mapper.get(host, info_host)
+                              for host, info_host in self.__dns_handler.list_host().items()}
+
+    @property
+    def host_mapper(self):
+        self.update_hosts()
+        return copy.deepcopy(self.__host_mapper)
+
+    def run_test(self, host):
+        self.update_hosts()
+        if host in self.__host_mapper:
+            path = host
+            if host[-1] == '.':
+                path = host[:-1]
+            self.__host_mapper[host]['test'] = requests.get('http://%s/hello' % path).text
 
 
 class DnsHostHandler:
@@ -60,19 +85,21 @@ class DnsHostHandler:
                     if line.strip():
                         host = line.split('IN')[0].rsplit()[0]
                         ip = line.split('A')[1].rsplit()[0]
-                        hosts[host] = ip
+                        hosts[host] = {'ip': ip}
         return hosts
 
 
-dns_handler = DnsHostHandler(filename=DNS_CONFIG_FILE, domain=DOMAIN)
+host_manager = HostManager()
 
 
-@app.route('/')
+@app.route('/', methods=('GET', 'POST'))
 def root_path():
-    list_hosts = dns_handler.list_host()
-    return render_template('index.html', title='Index - Cognitive Equinox', list_hosts=list_hosts)
+    if request.method == 'POST':
+        host_manager.run_test(host=request.form['host'])
 
+    return render_template('index.html', title='Index - Cognitive Equinox', dict_hosts=host_manager.host_mapper)
 
+"""
 @app.route('/hello')
 def hello():
     return {'name': SERVER_NAME, 'time': datetime.now(TZ).strftime(FORMAT)}
@@ -116,3 +143,4 @@ def remove_host(hostname):
     parsed_hostname = hostname.replace(DOMAIN, '')
     dns_handler.delete_host(hostname=parsed_hostname)
     return {'msg': 'Removed host "%s"!' % hostname}
+"""
