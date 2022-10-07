@@ -160,15 +160,10 @@ def root_path():
     return render_template('index.html', title='Index - Cognitive Equinox',
                            dict_hosts=hosts_manager.host_mapper, logs=logs_json)
 
-"""
-@app.route('/hello')
-def hello():
-    return {'name': SERVER_NAME, 'time': datetime.now(TZ).strftime(FORMAT)}
-
 
 @app.route('/hosts')
 def list_hosts():
-    return dns_handler.list_host()
+    return hosts_manager.list_host()
 
 
 @app.route('/host', methods=['POST'])
@@ -213,4 +208,3 @@ def get_logs():
         i, last_logs = logs.get()
         results[i] = last_logs
     return results
-"""
