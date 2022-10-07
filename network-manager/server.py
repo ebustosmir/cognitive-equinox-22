@@ -192,18 +192,14 @@ def activate_host(hostname):
     return {hostname: hosts_manager.host_mapper[hostname]}
 
 
-"""
 @app.route('/host/<hostname>', methods=['GET'])
 def get_host(hostname):
-    hosts = dns_handler.list_host()
-    parsed_hostname = hostname.replace(DOMAIN, '') + DOMAIN
-    host_ip = hosts.get(parsed_hostname, None)
-    if host_ip:
-        response = {'hostname': parsed_hostname, 'ip': host_ip}
+    hostinfo = hosts_manager.host_mapper.get(hostname)
+    if hostinfo:
+        response = {hostname: hostinfo}
     else:
-        response = {}
+        response = {'msg': 'Hostname %s not found' % hostname}, 404
     return response
-"""
 
 
 @app.route('/host/<hostname>', methods=['DELETE'])
