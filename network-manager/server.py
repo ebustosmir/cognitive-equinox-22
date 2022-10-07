@@ -58,7 +58,7 @@ class HostsManager:
                 self.__hosts_mapper[host]['show'] = True
 
     @property
-    def host_mapper(self):
+    def host_mapper(self) -> dict:
         self.update_hosts()
         return copy.deepcopy(self.__hosts_mapper)
 
@@ -163,9 +163,12 @@ def root_path():
 
 @app.route('/hosts')
 def list_hosts():
-    return hosts_manager.list_host()
+    hosts = {}
+    for host, properties in hosts_manager.host_mapper.items():
+        hosts[host] = properties['ip']
+    return hosts
 
-
+"""
 @app.route('/host', methods=['POST'])
 def new_host():
     # data = {"hostname": ".....", "ip": "....."}
@@ -175,7 +178,7 @@ def new_host():
     new_ip = data.get('ip', None)
     if hostname and new_ip:
         parsed_hostname = hostname.replace(DOMAIN, '')
-        dns_handler.write_host(hostname=parsed_hostname, ip=new_ip)
+        hosts_manager.add_new_host(hostname=parsed_hostname, ip=new_ip)
         response = {'msg': 'Added new host "%s" with ip "%s"' % (hostname, new_ip)}
     else:
         response = 404, {'msg': 'Invalid body'}
@@ -199,7 +202,7 @@ def remove_host(hostname):
     parsed_hostname = hostname.replace(DOMAIN, '')
     dns_handler.delete_host(hostname=parsed_hostname)
     return {'msg': 'Removed host "%s"!' % hostname}
-
+"""
 
 @app.route('/logs', methods=['GET'])
 def get_logs():
