@@ -6,6 +6,7 @@ from flask import render_template
 import queue
 from flask import Flask, request
 from watchfiles import watch
+import time
 import os
 import json
 
@@ -16,7 +17,9 @@ DNS_LOG_CONFIG_FILE = '/home/logs/query'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
-
+MAX_ATTEMPS = 3
+SLEEP_TIME = 1
+RETRY_CODES = {429, 500}
 logs = queue.Queue()
 
 
@@ -42,21 +45,22 @@ class HostsManager:
     def __init__(self):
         self.__dns_handler = DnsHostHandler(filename=DNS_CONFIG_FILE, domain=DOMAIN)
         self.__hosts_mapper = {
-            'host1.cognitive-equinox.com': {'ip': '172.20.0.4', 'show': False},
-            'host2.cognitive-equinox.com': {'ip': '172.20.0.5', 'show': False},
-            'host3.cognitive-equinox.com': {'ip': '172.20.0.6', 'show': False},
-            'host4.cognitive-equinox.com': {'ip': '172.20.0.7', 'show': False},
-            'host5.cognitive-equinox.com': {'ip': '172.20.0.8', 'show': False}
+            'host1.cognitive-equinox.com': {'ip': '172.20.0.4', 'active': False, 'kill': False},
+            'host2.cognitive-equinox.com': {'ip': '172.20.0.5', 'active': False, 'kill': False},
+            'host3.cognitive-equinox.com': {'ip': '172.20.0.6', 'active': False, 'kill': False},
+            'host4.cognitive-equinox.com': {'ip': '172.20.0.7', 'active': False, 'kill': False},
+            'host5.cognitive-equinox.com': {'ip': '172.20.0.8', 'active': False, 'kill': False}
         }
+        self.__session = requests.Session()
 
     def update_hosts(self):
         update_list = self.__dns_handler.list_host()
         for host, info_host in self.__hosts_mapper.items():
             if host not in update_list:
-                self.__hosts_mapper[host]['show'] = False
+                self.__hosts_mapper[host]['active'] = False
                 self.__hosts_mapper[host]['test'] = None
             else:
-                self.__hosts_mapper[host]['show'] = True
+                self.__hosts_mapper[host]['active'] = True
 
     @property
     def host_mapper(self):
@@ -66,14 +70,27 @@ class HostsManager:
     def run_test(self, host):
         self.update_hosts()
         if host in self.__hosts_mapper:
-            self.__hosts_mapper[host]['test'] = requests.get('http://%s/hello' % host).text
-            # retry request
+            message = None
+            num_attempts = 0
+            while message is None:
+                try:
+                    num_attempts += 1
+                    response = self.__session.request(method='get', url='http://%s/hello' % host)
+                except requests.RequestException as exc:
+                    if num_attempts < MAX_ATTEMPS:
+                        time.sleep(SLEEP_TIME)
+                    else:
+                        message = 'Node not avaliable'
+                else:
+                    if response.status_code in RETRY_CODES and num_attempts < MAX_ATTEMPS:
+                        time.sleep(SLEEP_TIME)
+                    else:
+                        message = response.text
+            self.__hosts_mapper[host]['test'] = message
 
-    def add_new_host(self):
-        for host, info_host in self.__hosts_mapper.items():
-            if not info_host['show']:
-                self.__dns_handler.append_host(hostname=host, ip=info_host['ip'])
-                break
+    def add_new_host(self, host):
+        if host in self.__hosts_mapper and not self.__hosts_mapper[host]['active']:
+            self.__dns_handler.append_host(hostname=host, ip=self.__hosts_mapper[host]['ip'])
         self.update_hosts()
 
     def remove_host(self, host):
@@ -150,7 +167,7 @@ def root_path():
         if request.form.get('delete'):
             hosts_manager.remove_host(host=request.form['host'])
         elif request.form.get('add'):
-            hosts_manager.add_new_host()
+            hosts_manager.add_new_host(host=request.form['host'])
         elif request.form.get('test'):
             hosts_manager.run_test(host=request.form['host'])
         elif request.form.get('refresh'):
@@ -161,6 +178,7 @@ def root_path():
 
     return render_template('index.html', title='Index - Cognitive Equinox',
                            dict_hosts=hosts_manager.host_mapper, logs=logs_json)
+
 
 """
 @app.route('/hello')
