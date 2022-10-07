@@ -1,0 +1,83 @@
+{
+	"info": {
+		"_postman_id": "08c34507-3f10-4d8c-a639-bf7d7f90ac5c",
+		"name": "equinox",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://172.20.0.3:5000/hosts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost/hosts",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"hosts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://172.20.0.3:5000/host/host1.cognitive-equinox.com.",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/host/host2.cognitive-equinox.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"host",
+						"host2.cognitive-equinox.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://172.20.0.3:5000/host",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/host/host1.cognitive-equinox.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"host",
+						"host1.cognitive-equinox.com"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://172.20.0.3:5000/host/host3",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/host/host2.cognitive-equinox.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"host",
+						"host2.cognitive-equinox.com"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

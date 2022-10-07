@@ -18,7 +18,7 @@ DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
 MAX_ATTEMPS = 3
-SLEEP_TIME = 1
+SLEEP_TIME = 0.3
 RETRY_CODES = {429, 500}
 logs = queue.Queue()
 
@@ -58,7 +58,6 @@ class HostsManager:
         for host, info_host in self.__hosts_mapper.items():
             if host not in update_list:
                 self.__hosts_mapper[host]['active'] = False
-                self.__hosts_mapper[host]['test'] = None
             else:
                 self.__hosts_mapper[host]['active'] = True
 
@@ -71,6 +70,7 @@ class HostsManager:
         self.update_hosts()
         if host in self.__hosts_mapper:
             message = None
+            response = None
             num_attempts = 0
             while message is None:
                 try:
@@ -80,7 +80,8 @@ class HostsManager:
                     if num_attempts < MAX_ATTEMPS:
                         time.sleep(SLEEP_TIME)
                     else:
-                        message = 'Node not avaliable'
+                        print('not avaliable')
+                        message = 'Player not avaliable'
                 else:
                     if response.status_code in RETRY_CODES and num_attempts < MAX_ATTEMPS:
                         time.sleep(SLEEP_TIME)
@@ -91,10 +92,13 @@ class HostsManager:
     def add_new_host(self, host):
         if host in self.__hosts_mapper and not self.__hosts_mapper[host]['active']:
             self.__dns_handler.append_host(hostname=host, ip=self.__hosts_mapper[host]['ip'])
+            self.__hosts_mapper[host]['test'] = None
         self.update_hosts()
 
     def remove_host(self, host):
-        self.__dns_handler.delete_host(hostname=host)
+        if host in self.__hosts_mapper and self.__hosts_mapper[host]['active']:
+            self.__dns_handler.delete_host(hostname=host)
+            self.__hosts_mapper[host]['test'] = None
         self.update_hosts()
 
 
