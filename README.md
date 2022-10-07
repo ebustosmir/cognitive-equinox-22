@@ -1,2 +1,2 @@
 # cognitive-equinox-22
-Team Cognitive equinox 2011 repo
+Team Cognitive equinox 2022 repo
