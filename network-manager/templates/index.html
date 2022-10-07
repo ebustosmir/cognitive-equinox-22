@@ -1,6 +1,9 @@
 <html>
     <body>
         <h1>{{ title }}</h1>
+        <form method="post" action="/">
+            <input type="submit" value="refresh">
+        </form>
         {% for host, info in dict_hosts.items() %}
             <p style="color:{{'green' if info.active else 'red'}}">{{ host }}: {{info.ip}} {% if info.test %} ({{info.test}}) {% endif %}</p>
             <form method="post" >
