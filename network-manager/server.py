@@ -186,7 +186,7 @@ def list_hosts():
 @app.route('/host/<hostname>', methods=['POST'])
 def activate_host(hostname):
     hosts_manager.add_new_host(host=hostname)
-    return {'msg': 'Activated host "%s"' % hostname}
+    return {hostname: hosts_manager.host_mapper[hostname]}
 
 
 """
@@ -200,14 +200,14 @@ def get_host(hostname):
     else:
         response = {}
     return response
+"""
 
 
 @app.route('/host/<hostname>', methods=['DELETE'])
 def remove_host(hostname):
-    parsed_hostname = hostname.replace(DOMAIN, '')
-    dns_handler.delete_host(hostname=parsed_hostname)
-    return {'msg': 'Removed host "%s"!' % hostname}
-"""
+    hosts_manager.remove_host(host=hostname)
+    return {hostname: hosts_manager.host_mapper[hostname]}
+
 
 """
 @app.route('/logs', methods=['GET'])
