@@ -63,7 +63,7 @@ class HostsManager:
                 self.__hosts_mapper[host]['active'] = True
 
     @property
-    def host_mapper(self):
+    def host_mapper(self) -> dict:
         self.update_hosts()
         return copy.deepcopy(self.__hosts_mapper)
 
@@ -181,52 +181,34 @@ def root_path():
                            dict_hosts=hosts_manager.host_mapper, logs=logs_json)
 
 
-"""
-@app.route('/hello')
-def hello():
-    return {'name': SERVER_NAME, 'time': datetime.now(TZ).strftime(FORMAT)}
-
-
 @app.route('/hosts')
 def list_hosts():
-    return dns_handler.list_host()
+    return hosts_manager.host_mapper
 
 
-@app.route('/host', methods=['POST'])
-def new_host():
-    # data = {"hostname": ".....", "ip": "....."}
-    data = request.json
-    hostname = data.get('hostname', None)
-
-    new_ip = data.get('ip', None)
-    if hostname and new_ip:
-        parsed_hostname = hostname.replace(DOMAIN, '')
-        dns_handler.write_host(hostname=parsed_hostname, ip=new_ip)
-        response = {'msg': 'Added new host "%s" with ip "%s"' % (hostname, new_ip)}
-    else:
-        response = 404, {'msg': 'Invalid body'}
-    return response
+@app.route('/host/<hostname>', methods=['POST'])
+def activate_host(hostname):
+    hosts_manager.add_new_host(host=hostname)
+    return {hostname: hosts_manager.host_mapper[hostname]}
 
 
 @app.route('/host/<hostname>', methods=['GET'])
 def get_host(hostname):
-    hosts = dns_handler.list_host()
-    parsed_hostname = hostname.replace(DOMAIN, '') + DOMAIN
-    host_ip = hosts.get(parsed_hostname, None)
-    if host_ip:
-        response = {'hostname': parsed_hostname, 'ip': host_ip}
+    hostinfo = hosts_manager.host_mapper.get(hostname)
+    if hostinfo:
+        response = {hostname: hostinfo}
     else:
-        response = {}
+        response = {'msg': 'Hostname %s not found' % hostname}, 404
     return response
 
 
 @app.route('/host/<hostname>', methods=['DELETE'])
 def remove_host(hostname):
-    parsed_hostname = hostname.replace(DOMAIN, '')
-    dns_handler.delete_host(hostname=parsed_hostname)
-    return {'msg': 'Removed host "%s"!' % hostname}
+    hosts_manager.remove_host(host=hostname)
+    return {hostname: hosts_manager.host_mapper[hostname]}
 
 
+"""
 @app.route('/logs', methods=['GET'])
 def get_logs():
     results = {}
