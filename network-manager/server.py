@@ -182,23 +182,14 @@ def root_path():
 def list_hosts():
     return hosts_manager.host_mapper
 
+
+@app.route('/host/<hostname>', methods=['POST'])
+def activate_host(hostname):
+    hosts_manager.add_new_host(host=hostname)
+    return {'msg': 'Activated host "%s"' % hostname}
+
+
 """
-@app.route('/host', methods=['POST'])
-def new_host():
-    # data = {"hostname": ".....", "ip": "....."}
-    data = request.json
-    hostname = data.get('hostname', None)
-
-    new_ip = data.get('ip', None)
-    if hostname and new_ip:
-        parsed_hostname = hostname.replace(DOMAIN, '')
-        hosts_manager.add_new_host(hostname=parsed_hostname, ip=new_ip)
-        response = {'msg': 'Added new host "%s" with ip "%s"' % (hostname, new_ip)}
-    else:
-        response = 404, {'msg': 'Invalid body'}
-    return response
-
-
 @app.route('/host/<hostname>', methods=['GET'])
 def get_host(hostname):
     hosts = dns_handler.list_host()
@@ -218,7 +209,7 @@ def remove_host(hostname):
     return {'msg': 'Removed host "%s"!' % hostname}
 """
 
-
+"""
 @app.route('/logs', methods=['GET'])
 def get_logs():
     results = {}
@@ -226,3 +217,4 @@ def get_logs():
         i, last_logs = logs.get()
         results[i] = last_logs
     return results
+"""
