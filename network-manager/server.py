@@ -1,4 +1,5 @@
 import copy
+import json
 import threading
 import pytz
 import requests
@@ -173,6 +174,8 @@ def root_path():
             while not logs.empty():
                 i, last_logs = logs.get()
                 logs_json[i] = last_logs
+
+            logs_json = json.dumps(logs_json, sort_keys=True, indent=2)
 
     return render_template('index.html', title='Index - Cognitive Equinox',
                            dict_hosts=hosts_manager.host_mapper, logs=logs_json)
