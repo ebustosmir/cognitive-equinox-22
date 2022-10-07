@@ -16,8 +16,8 @@ DNS_LOG_CONFIG_FILE = '/home/logs/query'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
-MAX_ATTEMPS = 10
-SLEEP_TIME = 5
+MAX_ATTEMPS = 3
+SLEEP_TIME = 1
 RETRY_CODES = {429, 500}
 logs = queue.Queue()
 
@@ -69,10 +69,9 @@ class HostsManager:
     def run_test(self, host):
         self.update_hosts()
         if host in self.__hosts_mapper:
-            self.__hosts_mapper[host]['test'] = requests.get('http://%s/hello' % host).text
-            response = None
+            message = None
             num_attempts = 0
-            while response is None:
+            while message is None:
                 try:
                     num_attempts += 1
                     response = self.__session.request(method='get', url='http://%s/hello' % host)
@@ -80,13 +79,13 @@ class HostsManager:
                     if num_attempts < MAX_ATTEMPS:
                         time.sleep(SLEEP_TIME)
                     else:
-                        response = {'msg': 'Node not avaliable'}
+                        message = 'Node not avaliable'
                 else:
                     if response.status_code in RETRY_CODES and num_attempts < MAX_ATTEMPS:
                         time.sleep(SLEEP_TIME)
-                        response = None
-
-            self.__hosts_mapper[host]['test'] = response.text
+                    else:
+                        message = response.text
+            self.__hosts_mapper[host]['test'] = message
 
     def add_new_host(self, host):
         if host in self.__hosts_mapper and not self.__hosts_mapper[host]['active']:
