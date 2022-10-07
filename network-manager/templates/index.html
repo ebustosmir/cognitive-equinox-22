@@ -2,18 +2,17 @@
     <body>
         <h1>{{ title }}</h1>
         {% for host, info in dict_hosts.items() %}
-            {% if info.show %}
-                <p>{{ host }}: {{info.ip}}{% if info.test %} ({{info.test}}) {% endif %}</p>
-                <form method="post" >
-                    <input name="host" id="title" value="{{host}}" hidden>
-                    <input type="submit" name="test" value="Test">
-                    <input type="submit" name="delete" value="delete">
-                </form>
-            {% endif %}
+            <p style="color:{{'green' if info.active else 'red'}}">{{ host }}: {{info.ip}} {% if info.test %} ({{info.test}}) {% endif %}</p>
+            <form method="post" >
+                <input name="host" id="title" value="{{host}}" hidden>
+                <input type="submit" name="add" value="add" {% if info.active %}disabled{%endif%}>
+                <input type="submit" name="delete" value="delete" {% if not info.active %}disabled{%endif%}>
+                <input type="submit" name="test" value="Test">
+            </form>
+
         {% endfor %}
     </body>
     <form method="post" action="/">
-        <input type="submit" name="add" value="add">
     </form>
     <pre>
     <code>

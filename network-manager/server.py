@@ -41,21 +41,21 @@ class HostsManager:
     def __init__(self):
         self.__dns_handler = DnsHostHandler(filename=DNS_CONFIG_FILE, domain=DOMAIN)
         self.__hosts_mapper = {
-            'host1.cognitive-equinox.com': {'ip': '172.20.0.4', 'show': False},
-            'host2.cognitive-equinox.com': {'ip': '172.20.0.5', 'show': False},
-            'host3.cognitive-equinox.com': {'ip': '172.20.0.6', 'show': False},
-            'host4.cognitive-equinox.com': {'ip': '172.20.0.7', 'show': False},
-            'host5.cognitive-equinox.com': {'ip': '172.20.0.8', 'show': False}
+            'host1.cognitive-equinox.com': {'ip': '172.20.0.4', 'active': False, 'kill': False},
+            'host2.cognitive-equinox.com': {'ip': '172.20.0.5', 'active': False, 'kill': False},
+            'host3.cognitive-equinox.com': {'ip': '172.20.0.6', 'active': False, 'kill': False},
+            'host4.cognitive-equinox.com': {'ip': '172.20.0.7', 'active': False, 'kill': False},
+            'host5.cognitive-equinox.com': {'ip': '172.20.0.8', 'active': False, 'kill': False}
         }
 
     def update_hosts(self):
         update_list = self.__dns_handler.list_host()
         for host, info_host in self.__hosts_mapper.items():
             if host not in update_list:
-                self.__hosts_mapper[host]['show'] = False
+                self.__hosts_mapper[host]['active'] = False
                 self.__hosts_mapper[host]['test'] = None
             else:
-                self.__hosts_mapper[host]['show'] = True
+                self.__hosts_mapper[host]['active'] = True
 
     @property
     def host_mapper(self):
@@ -68,11 +68,9 @@ class HostsManager:
             self.__hosts_mapper[host]['test'] = requests.get('http://%s/hello' % host).text
             # retry request
 
-    def add_new_host(self):
-        for host, info_host in self.__hosts_mapper.items():
-            if not info_host['show']:
-                self.__dns_handler.append_host(hostname=host, ip=info_host['ip'])
-                break
+    def add_new_host(self, host):
+        if host in self.__hosts_mapper and not self.__hosts_mapper[host]['active']:
+            self.__dns_handler.append_host(hostname=host, ip=self.__hosts_mapper[host]['ip'])
         self.update_hosts()
 
     def remove_host(self, host):
@@ -149,7 +147,7 @@ def root_path():
         if request.form.get('delete'):
             hosts_manager.remove_host(host=request.form['host'])
         elif request.form.get('add'):
-            hosts_manager.add_new_host()
+            hosts_manager.add_new_host(host=request.form['host'])
         elif request.form.get('test'):
             hosts_manager.run_test(host=request.form['host'])
         elif request.form.get('refresh'):
