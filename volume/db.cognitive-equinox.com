@@ -14,3 +14,4 @@ ns1.cognitive-equinox.com.          IN      A      172.20.0.2
 
 host1.cognitive-equinox.com.        IN      A      172.20.0.4
 host2.cognitive-equinox.com.        IN      A      172.20.0.5
+host3.cognitive-equinox.com.        IN      A      172.20.0.6
