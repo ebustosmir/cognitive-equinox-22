@@ -183,10 +183,7 @@ def root_path():
 
 @app.route('/hosts')
 def list_hosts():
-    hosts = {}
-    for host, properties in hosts_manager.host_mapper.items():
-        hosts[host] = properties['ip']
-    return hosts
+    return hosts_manager.host_mapper
 
 """
 @app.route('/host', methods=['POST'])
@@ -223,6 +220,7 @@ def remove_host(hostname):
     dns_handler.delete_host(hostname=parsed_hostname)
     return {'msg': 'Removed host "%s"!' % hostname}
 """
+
 
 @app.route('/logs', methods=['GET'])
 def get_logs():
