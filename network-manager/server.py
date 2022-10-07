@@ -6,6 +6,7 @@ from flask import render_template
 import queue
 from flask import Flask, request
 from watchfiles import watch
+import time
 import os
 
 app = Flask(__name__)
@@ -15,7 +16,9 @@ DNS_LOG_CONFIG_FILE = '/home/logs/query'
 DOMAIN = '.cognitive-equinox.com.'
 FORMAT = "%d/%m/%Y %H:%M:%S"
 TZ = pytz.timezone('Europe/Madrid')
-
+MAX_ATTEMPS = 10
+SLEEP_TIME = 5
+RETRY_CODES = {429, 500}
 logs = queue.Queue()
 
 
@@ -47,6 +50,7 @@ class HostsManager:
             'host4.cognitive-equinox.com': {'ip': '172.20.0.7', 'show': False},
             'host5.cognitive-equinox.com': {'ip': '172.20.0.8', 'show': False}
         }
+        self.__session = requests.Session()
 
     def update_hosts(self):
         update_list = self.__dns_handler.list_host()
@@ -66,7 +70,23 @@ class HostsManager:
         self.update_hosts()
         if host in self.__hosts_mapper:
             self.__hosts_mapper[host]['test'] = requests.get('http://%s/hello' % host).text
-            # retry request
+            response = None
+            num_attempts = 0
+            while response is None:
+                try:
+                    num_attempts += 1
+                    response = self.__session.request(method='get', url='http://%s/hello' % host)
+                except requests.RequestException as exc:
+                    if num_attempts < MAX_ATTEMPS:
+                        time.sleep(SLEEP_TIME)
+                    else:
+                        response = {'msg': 'Node not avaliable'}
+                else:
+                    if response.status_code in RETRY_CODES and num_attempts < MAX_ATTEMPS:
+                        time.sleep(SLEEP_TIME)
+                        response = None
+
+            self.__hosts_mapper[host]['test'] = response.text
 
     def add_new_host(self):
         for host, info_host in self.__hosts_mapper.items():
